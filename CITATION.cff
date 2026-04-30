@@ -1,0 +1,56 @@
+cff-version: 1.2.0
+title: "lingprops-app: Streamlit web app for concreteness and tangibility scoring"
+message: >-
+  If you use this app or its underlying library in your research, please
+  cite the works listed in the `preferred-citation` and `references` sections.
+type: software
+authors:
+  - family-names: Gordeliy
+    given-names: Ivan
+license: MIT
+repository-code: "https://github.com/gordeli/lingprops-app"
+
+# The methodology lives in the lingprops library and is documented in
+# the JCR 2023 paper.  Cite both the paper and the library.
+preferred-citation:
+  type: article
+  title: >-
+    Been There, Done That: How Episodic and Semantic Memory Affects the
+    Language of Authentic and Fictitious Reviews
+  authors:
+    - family-names: Kronrod
+      given-names: Ann
+    - family-names: Gordeliy
+      given-names: Ivan
+    - family-names: Lee
+      given-names: Jeffrey K.
+  journal: "Journal of Consumer Research"
+  year: 2023
+  volume: 50
+  issue: 2
+  start: 405
+  end: 425
+  doi: "10.1093/jcr/ucac056"
+
+references:
+  - type: report
+    title: >-
+      Detecting fictitious consumer reviews: A theory-driven approach
+      combining automated text analysis and experimental design
+    authors:
+      - family-names: Kronrod
+        given-names: Ann
+      - family-names: Lee
+        given-names: Jeffrey K.
+      - family-names: Gordeliy
+        given-names: Ivan
+    institution:
+      name: "Marketing Science Institute"
+    number: "17-124"
+    year: 2017
+  - type: software
+    title: "lingprops: linguistic property utilities (concreteness, tangibility)"
+    authors:
+      - family-names: Gordeliy
+        given-names: Ivan
+    repository-code: "https://github.com/gordeli/lingprops_test"

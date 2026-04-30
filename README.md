@@ -94,6 +94,64 @@ OOMs:
 
 ---
 
+## How to cite
+
+If this app or the underlying library helps your research, please cite
+the methodology paper and (optionally) the library. A `CITATION.cff`
+file in this repo makes GitHub render a *"Cite this repository"* button
+on the right-hand sidebar.
+
+### APA
+
+- Kronrod, A., Gordeliy, I., & Lee, J. K. (2023). *Been There, Done
+  That: How Episodic and Semantic Memory Affects the Language of
+  Authentic and Fictitious Reviews.* **Journal of Consumer Research**,
+  50(2), 405–425. https://doi.org/10.1093/jcr/ucac056
+- Kronrod, A., Lee, J. K., & Gordeliy, I. (2017). *Detecting fictitious
+  consumer reviews: A theory-driven approach combining automated text
+  analysis and experimental design.* **Marketing Science Institute
+  Working Papers Series**, 17–124.
+
+### BibTeX
+
+```bibtex
+@article{KronrodGordeliyLee2023JCR,
+  author  = {Kronrod, Ann and Gordeliy, Ivan and Lee, Jeffrey K},
+  title   = {Been There, Done That: How Episodic and Semantic Memory
+             Affects the Language of Authentic and Fictitious Reviews},
+  journal = {Journal of Consumer Research},
+  year    = {2023},
+  volume  = {50},
+  number  = {2},
+  pages   = {405--425},
+  doi     = {10.1093/jcr/ucac056}
+}
+
+@techreport{KronrodLeeGordeliy2017MSI,
+  author      = {Kronrod, Ann and Lee, Jeffrey K. and Gordeliy, Ivan},
+  title       = {Detecting fictitious consumer reviews: A theory-driven
+                 approach combining automated text analysis and
+                 experimental design},
+  institution = {Marketing Science Institute},
+  type        = {Working Paper},
+  number      = {17-124},
+  year        = {2017}
+}
+```
+
+### Underlying datasets and tools
+
+The library (`lingprops`) builds on:
+
+- **WordNet** (Miller, 1995; Fellbaum, 1998) — concreteness via hypernym depth
+- **Brysbaert et al. (2014)** — BWK human-rated concreteness norms
+  (~40 k words, 1–5 scale) used by the *tangibility* metric
+- **NLTK** (Bird, Klein & Loper, 2009) — tokenisation, POS tagging,
+  WordNet access, fallback NER
+- **spaCy** (Honnibal & Montani, 2017) — default NER backend
+
+---
+
 ## License
 
 MIT — see `LICENSE`.
