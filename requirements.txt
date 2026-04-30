@@ -1,0 +1,19 @@
+# Core library (pulled directly from GitHub)
+lingprops @ git+https://github.com/gordeli/lingprops_test.git@main
+
+# Streamlit + I/O
+streamlit>=1.30
+openpyxl>=3.0
+xlrd>=2.0
+pandas>=2.0
+
+# Default NER backend: spaCy + en_core_web_sm
+# (the wheel URL avoids needing `python -m spacy download` on Streamlit Cloud)
+spacy>=3.7,<4.0
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+
+# Optional: enables wsd="neural" (sentence-transformer gloss matching).
+# Pulls torch (~200 MB CPU) so cold-start is slower; remove this line
+# if Streamlit Cloud is tight on resources -- the 'first' / 'lesk'
+# WSD strategies will continue to work without it.
+sentence-transformers>=2.2

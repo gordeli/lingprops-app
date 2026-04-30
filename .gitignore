@@ -1,0 +1,32 @@
+# Byte-compiled / optimised
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local data / outputs
+*.xlsx
+*.xls
+*.csv
+*.parquet
+
+# Streamlit local cache
+.streamlit/secrets.toml
