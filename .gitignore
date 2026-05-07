@@ -30,3 +30,10 @@ Thumbs.db
 
 # Streamlit local cache
 .streamlit/secrets.toml
+
+# PyInstaller / Inno Setup build artefacts (binaries go to GitHub Releases,
+# not into the source tree).
+desktop/build/
+desktop/dist/
+desktop/Output/
+*.spec.bak

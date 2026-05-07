@@ -1,10 +1,17 @@
 # lingprops-app
 
-Streamlit web app for the [lingprops](https://github.com/gordeli/lingprops_test)
-library — computes WordNet-based **concreteness** and BWK **tangibility**
-scores for the rows of an uploaded Excel file.
+Two frontends for the [lingprops](https://github.com/gordeli/lingprops_test)
+library — both compute WordNet-based **concreteness** and BWK
+**tangibility** scores for the rows of an uploaded Excel file.
 
-> **Live demo:** *(URL goes here once deployed to Streamlit Community Cloud)*
+| Frontend | Where | Best for |
+|---|---|---|
+| **Web app** (Streamlit) | [https://lingprops.streamlit.app/](https://lingprops.streamlit.app/) | Anyone with a browser; share a link with collaborators |
+| **Desktop app** (Windows .exe) | [Releases](https://github.com/gordeli/lingprops-app/releases) | Offline / sensitive-data workflows; no Python needed |
+
+The two share the same scoring logic and UI; the desktop build excludes
+the `wsd="neural"` strategy to keep the binary under 200 MB. See
+[`desktop/`](./desktop/) for the build pipeline.
 
 This is the user-facing frontend. The scoring methodology lives in the
 [lingprops](https://github.com/gordeli/lingprops_test) library and is
