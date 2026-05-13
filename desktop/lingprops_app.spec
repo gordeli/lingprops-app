@@ -40,13 +40,20 @@ lingprops_datas = collect_data_files("lingprops")
 datas = spacy_datas + en_datas + thinc_datas + lingprops_datas
 
 # --- Hidden imports ----------------------------------------------------
+# Critical: lingprops.ner does `import spacy` lazily inside a function,
+# so PyInstaller's static analyser does NOT see it.  Without these
+# collect_submodules() calls the bundled exe ships with no spaCy at all.
+# `collect_submodules` only pulls Python modules (and via Analysis their
+# Cython .pyd extensions); it does NOT pull torch DLLs the way
+# `collect_all` would.
 hiddenimports = (
     collect_submodules("lingprops")
     + collect_submodules("nltk")
+    + collect_submodules("spacy")
+    + collect_submodules("thinc")
     + collect_submodules("en_core_web_sm")
     + [
-        # spaCy language pipeline pieces sometimes imported lazily
-        "spacy.lang.en",
+        # Cython internals occasionally missed even with collect_submodules
         "spacy.pipeline._parser_internals",
         "spacy.pipeline._parser_internals.ner",
         "spacy.pipeline._parser_internals.arc_eager",
@@ -72,12 +79,12 @@ excludes = [
     "torch.distributed", "torch.testing",
     # NLP libs that follow torch in
     "sentence_transformers", "transformers", "tokenizers",
-    # thinc backends that only matter if torch / mxnet / jax is installed
-    "thinc.layers.pytorch_wrapper",
-    "thinc.layers.mxnet_wrapper",
-    "thinc.layers.tensorflow_wrapper",
-    "thinc.shims.pytorch", "thinc.shims.mxnet", "thinc.shims.tensorflow",
-    "thinc.backends.cupy_ops",
+    # NB: do NOT exclude thinc.backends.cupy_ops / thinc.layers.pytorch_wrapper
+    # etc.  thinc imports those at package-init time and expects an
+    # ImportError when the optional dep is absent.  Excluding them at the
+    # PyInstaller level produces a ModuleNotFoundError that thinc does not
+    # catch.  The thinc wrappers themselves are tiny pure-Python files;
+    # they fail at runtime as intended when torch/cupy are missing.
     # pandas pulls pyarrow which adds ~50 MB of arrow/parquet DLLs we
     # don't use (we read Excel via openpyxl, not Parquet)
     "pyarrow",
