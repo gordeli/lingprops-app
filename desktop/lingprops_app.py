@@ -30,9 +30,58 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import threading
+import sys
+import traceback
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
+
+
+# ---------------------------------------------------------------------------
+# Crash log -- writes any uncaught traceback to %LOCALAPPDATA%\LingProps\error.log
+# so end users on the standalone .exe can share a real stack trace with
+# us when the bundle misbehaves.  The path is also shown in any error
+# dialog that does manage to fire.
+# ---------------------------------------------------------------------------
+
+def _log_path() -> Path:
+    base = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "LingProps"
+    base.mkdir(parents=True, exist_ok=True)
+    return base / "error.log"
+
+
+LOG_PATH = _log_path()
+
+
+def _log_exception(exc_type, exc_value, tb) -> None:
+    try:
+        with open(LOG_PATH, "a", encoding="utf-8") as f:
+            f.write("=" * 70 + "\n")
+            import datetime
+            f.write(f"{datetime.datetime.now().isoformat()} - uncaught exception\n")
+            traceback.print_exception(exc_type, exc_value, tb, file=f)
+            f.write("\n")
+    except Exception:
+        pass  # last resort - don't crash inside the crash handler
+
+
+sys.excepthook = _log_exception
+
+
+def _tk_report_callback_exception(self, exc, val, tb):
+    """Replace Tk's default callback exception handler so widget callbacks
+    that raise also land in the log file."""
+    _log_exception(exc, val, tb)
+    try:
+        messagebox.showerror(
+            "LingProps - unexpected error",
+            f"{val}\n\nFull traceback written to:\n{LOG_PATH}",
+        )
+    except Exception:
+        pass
+
+
+tk.Tk.report_callback_exception = _tk_report_callback_exception
 
 
 # ---------------------------------------------------------------------------
