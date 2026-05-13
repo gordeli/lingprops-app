@@ -36,6 +36,24 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+# ---------------------------------------------------------------------------
+# PyInstaller `console=False` sets `sys.stdout = sys.stderr = None`.  Many
+# libraries we depend on (tqdm via NLTK downloads, lingprops legacy code,
+# spaCy diagnostics) do `sys.stderr.write(...); sys.stderr.flush()`, which
+# explodes with "'NoneType' object has no attribute 'flush'".  Replace
+# both streams with discard sinks before any of those imports happen.
+# ---------------------------------------------------------------------------
+
+class _NullStream:
+    def write(self, *a, **kw):    return 0
+    def flush(self, *a, **kw):    pass
+    def isatty(self):             return False
+    def close(self):              pass
+    def fileno(self):             raise OSError("no fileno in windowed mode")
+
+if sys.stdout is None:  sys.stdout = _NullStream()
+if sys.stderr is None:  sys.stderr = _NullStream()
+
 
 # ---------------------------------------------------------------------------
 # Crash log -- writes any uncaught traceback to %LOCALAPPDATA%\LingProps\error.log
@@ -411,7 +429,21 @@ class LingPropsApp:
                 "Complete",
                 f"Processed {n} rows.\nSaved to:\n{self.output_path.get()}"))
         except Exception as e:
-            err = str(e)
+            # Capture the FULL traceback now (before it goes out of scope)
+            # and persist it -- our outer `except` was swallowing the
+            # stack trace, leaving the log file empty.
+            tb_text = traceback.format_exc()
+            try:
+                with open(LOG_PATH, "a", encoding="utf-8") as f:
+                    import datetime
+                    f.write("=" * 70 + "\n")
+                    f.write(f"{datetime.datetime.now().isoformat()}  "
+                            "- error during _process\n")
+                    f.write(tb_text)
+                    f.write("\n")
+            except Exception:
+                pass
+            err = f"{type(e).__name__}: {e}\n\nFull traceback in:\n{LOG_PATH}"
             self.root.after(0, lambda err=err: messagebox.showerror("Error", err))
             self._update_status("Error")
         finally:
