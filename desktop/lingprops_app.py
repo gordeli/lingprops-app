@@ -137,28 +137,26 @@ def compute_row(text, *, wsd, ner, ner_backend):
     concreteness no-repetitions, tangibility with-repetitions, and word
     counts.  This matches the standard reporting convention used in the
     JCR 2023 paper and follow-up analyses.
+
+    Uses :func:`lingprops.compute_all` so concreteness and tangibility
+    share one tokenisation pass (sent_tokenize + word_tokenize + POS
+    tagging runs once per row instead of twice).
     """
-    from lingprops import compute_concreteness, compute_tangibility
+    from lingprops import compute_all
 
-    row = {}
+    r = compute_all(text, wsd=wsd, ner=ner, ner_backend=ner_backend)
+    t  = r["concreteness"]["total"]
+    tt = r["tangibility"]["total"]
 
-    # Concreteness (parametrised by the UI's library options)
-    r = compute_concreteness(
-        text, wsd=wsd, ner=ner, ner_backend=ner_backend,
-    )
-    t = r["total"]
-    row["normalized_score_norep"] = t["normalized_score_norep"]
-    row["count_norep"]            = t["count_norep"]
-    row["word_count"]             = t["word_count"]
+    row = {
+        "normalized_score_norep": t["normalized_score_norep"],
+        "count_norep":            t["count_norep"],
+        "word_count":             t["word_count"],
+        "tang_normalized_score":  tt["normalized_score"],
+        "tang_count":             tt["count"],
+    }
     for pos in ("NN", "VB", "JJ", "RB", "CD"):
         row[f"content_words_{pos}"] = t["content_word_counts"][pos]
-
-    # Tangibility (with-repetitions, the standard reporting convention)
-    tr = compute_tangibility(text)
-    tt = tr["total"]
-    row["tang_normalized_score"]  = tt["normalized_score"]
-    row["tang_count"]             = tt["count"]
-
     return row
 
 
@@ -399,8 +397,8 @@ class LingPropsApp:
                     self._update_status(f"spaCy unavailable ({e}); falling back to NLTK")
 
             self._update_status("Warming up...")
-            from lingprops import compute_concreteness
-            compute_concreteness("warmup", wsd=wsd, ner=ner, ner_backend=ner_backend)
+            from lingprops import compute_all
+            compute_all("warmup", wsd=wsd, ner=ner, ner_backend=ner_backend)
 
             self._update_status("Loading Excel file...")
             df = pd.read_excel(self.input_path.get())
