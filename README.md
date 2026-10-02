@@ -33,10 +33,10 @@ explain each one, and every result file carries the same definitions on a
 
 | Column | Previous name | What it is |
 |---|---|---|
-| `concreteness_specificity` | `normalized_score_norep` | Concreteness as specificity: mean of log(d+1) over the text's unique content-word lemmas, where d is the number of distinct WordNet ancestors of the word's sense. Natural-log units, typically 1.6–2.4. Higher = more specific. |
-| `words_used` | `count_norep` | The number of words that made a **non-zero** contribution to the concreteness score — its denominator. Words with no WordNet noun sense are not counted. |
-| `tangibility_bwk` | `tang_normalized_score` | Mean human concreteness rating (Brysbaert, Warriner & Kuperman 2014), 1 = abstract to 5 = concrete, over content-word tokens **with** repetitions. |
-| `words_used_bwk` | `tang_count` | The number of tokens found in the BWK list — the denominator of `tangibility_bwk`. |
+| `concreteness_specificity_score` | `normalized_score_norep` | Concreteness as specificity: mean of log(d+1) over the text's unique content-word lemmas, where d is the number of distinct WordNet ancestors of the word's sense. Natural-log units, typically 1.6–2.4. Higher = more specific. |
+| `concreteness_specificity_words` | `count_norep` | The number of words that made a **non-zero** contribution to the concreteness score — its denominator. Words with no WordNet noun sense are not counted. |
+| `concreteness_tangibility_score` | `tang_normalized_score` | Mean human concreteness rating (Brysbaert, Warriner & Kuperman 2014), 1 = abstract to 5 = concrete, over content-word tokens **with** repetitions. |
+| `concreteness_tangibility_words` | `tang_count` | The number of tokens found in the BWK list — the denominator of `concreteness_tangibility_score`. |
 | `word_count` | *(unchanged)* | Total word tokens including function words. Neither score is divided by it. |
 | `nouns_count` | `content_words_NN` | Noun tokens, with repetitions (NN, NNS, NNP, NNPS). |
 | `verbs_count` | `content_words_VB` | Verb tokens, with repetitions (all VB*). |

@@ -107,13 +107,13 @@ tk.Tk.report_callback_exception = _tk_report_callback_exception
 # ---------------------------------------------------------------------------
 
 METRIC_GROUPS = {
-    "Concreteness (no repetitions)": [
-        ("concreteness_specificity",   "Concreteness as specificity"),
-        ("words_used",  "Words used (concreteness)"),
+    "Concreteness as specificity (no repetitions)": [
+        ("concreteness_specificity_score", "Score"),
+        ("concreteness_specificity_words", "Words used"),
     ],
-    "Tangibility BWK (with repetitions)": [
-        ("tangibility_bwk",            "Tangibility (BWK 1-5)"),
-        ("words_used_bwk",   "Words used (tangibility)"),
+    "Concreteness as tangibility, BWK (with repetitions)": [
+        ("concreteness_tangibility_score", "Score"),
+        ("concreteness_tangibility_words", "Words used"),
     ],
     "Word counts": [
         ("word_count",       "Total words"),
@@ -131,33 +131,33 @@ METRIC_GROUPS = {
 # ---------------------------------------------------------------------------
 
 VARIABLE_DEFS = [   # (column, previous name, group, units, definition)
-    ("concreteness_specificity", "normalized_score_norep", "Concreteness", "nats (natural-log units); typically 1.6-2.4",
+    ("concreteness_specificity_score", "normalized_score_norep", "Specificity", "nats (natural-log units); typically 1.6-2.4",
      "Concreteness as specificity. Each content word (noun, verb, adjective, adverb, cardinal "
      "number) is mapped to a WordNet noun sense; d is the number of distinct ancestors "
      "(hypernyms) of that sense, and the word contributes log(d + 1). The score is the mean of "
      "those contributions over the text's UNIQUE word lemmas - each lemma counted once, within "
      "its part of speech. Higher = more specific (words sitting lower in the WordNet hierarchy). "
-     "Divided by words_used, NOT by word_count."),
+     "Divided by concreteness_specificity_words, NOT by word_count."),
 
-    ("words_used", "count_norep", "Concreteness", "count of unique lemmas",
+    ("concreteness_specificity_words", "count_norep", "Specificity", "count of unique lemmas",
      "The number of words that made a NON-ZERO contribution to the concreteness score - that "
-     "is, the denominator of concreteness_specificity. A content word contributes nothing, "
+     "is, the denominator of concreteness_specificity_score. A content word contributes nothing, "
      "and is not counted here, if it has no WordNet noun sense after lemmatisation and NER "
      "substitution, if its depth is 0, if the lemma is shorter than two characters, or if it "
      "is on the exclusion list. Each lemma counts at most once. Always smaller than or equal "
      "to the sum of the part-of-speech counts below. The tangibility score has its "
-     "own, separate count: words_used_bwk."),
+     "own, separate count: concreteness_tangibility_words."),
 
-    ("tangibility_bwk", "tang_normalized_score", "Tangibility", "1 (abstract) to 5 (concrete)",
+    ("concreteness_tangibility_score", "tang_normalized_score", "Tangibility", "1 (abstract) to 5 (concrete)",
      "Tangibility: the mean human concreteness rating of the text's content words, taken from "
      "Brysbaert, Warriner & Kuperman (2014), who collected ratings for 40,000 English lemmas on "
      "a 1-5 scale. Counted WITH repetitions - every token counts. Words absent from the BWK list "
      "are ignored."),
 
-    ("words_used_bwk", "tang_count", "Tangibility", "count of tokens",
-     "The number of words used to compute tangibility_bwk: content-word tokens found in the "
+    ("concreteness_tangibility_words", "tang_count", "Tangibility", "count of tokens",
+     "The number of words used to compute concreteness_tangibility_score: content-word tokens found in the "
      "Brysbaert et al. list. Counted WITH repetitions, so it is not the same thing as "
-     "words_used, which is the (unique-lemma) count behind the concreteness score."),
+     "concreteness_specificity_words, the unique-lemma count behind the specificity score."),
 
     ("word_count", "word_count (unchanged)", "Word counts", "count of tokens",
      "Total number of word tokens in the text, including function words (the, of, and ...). "
@@ -187,8 +187,8 @@ VARIABLE_NOTES = [
     "The part-of-speech counts are counts of CANDIDATES for scoring, not of scored words: a "
     "word counted there can still be unscored if it has no WordNet sense.",
     "Settings change the numbers. The word-sense disambiguation strategy and named-entity "
-    "recognition both affect concreteness_specificity; the run settings are recorded on the "
-    "'Run settings' sheet of every output file.",
+    "recognition both affect concreteness_specificity_score; the run settings are recorded on "
+    "the 'Run settings' sheet of every output file.",
     "Very short texts give unstable scores, because the mean is taken over few words. Treat "
     "texts with fewer than about 30 scored words with caution.",
     "Reference: Kronrod, A., Gordeliy, I., & Lee, J. K. (2023). Been There, Done That. "
@@ -221,11 +221,11 @@ def compute_row(text, *, wsd, ner, ner_backend):
     tt = r["tangibility"]["total"]
 
     row = {
-        "concreteness_specificity": t["normalized_score_norep"],
-        "words_used":               t["count_norep"],
+        "concreteness_specificity_score": t["normalized_score_norep"],
+        "concreteness_specificity_words": t["count_norep"],
         "word_count":               t["word_count"],
-        "tangibility_bwk":          tt["normalized_score"],
-        "words_used_bwk":           tt["count"],
+        "concreteness_tangibility_score": tt["normalized_score"],
+        "concreteness_tangibility_words": tt["count"],
     }
     for pos, name in (("NN", "nouns"), ("VB", "verbs"), ("JJ", "adjectives"),
                       ("RB", "adverbs"), ("CD", "numbers")):
@@ -407,7 +407,7 @@ class LingPropsApp:
         w("The same definitions are written to a 'Variable definitions' sheet inside "
           "every result file, next to a 'Run settings' sheet recording the options used.")
         w()
-        for group in ("Concreteness", "Tangibility", "Word counts"):
+        for group in ("Specificity", "Tangibility", "Word counts"):
             w("=== " + group + " ===")
             w()
             for colname, oldname, grp, units, text in VARIABLE_DEFS:
