@@ -206,11 +206,27 @@ VARIABLE_NOTES = [
     "recognition both affect concreteness_specificity_score; the run settings are recorded on "
     "the 'Run settings' sheet of every output file.",
     "Very short texts give unstable scores, because the mean is taken over few words. Treat "
-    "texts with fewer than about 30 scored words with caution.",
-    "Reference: Kronrod, A., Gordeliy, I., & Lee, J. K. (2023). Been There, Done That. "
-    "Journal of Consumer Research, 50(2), 405-425. Brysbaert, M., Warriner, A. B., & Kuperman, "
-    "V. (2014). Concreteness ratings for 40 thousand generally known English word lemmas. "
-    "Behavior Research Methods, 46(3), 904-911.",
+    "texts with fewer than about 30 scored words with caution."
+
+]
+
+REFERENCES = [
+    "Kronrod, A., Gordeliy, I., & Lee, J. K. (2023). Been There, Done That: How Episodic and "
+    "Semantic Memory Affects the Language of Authentic and Fictitious Reviews. Journal of "
+    "Consumer Research, 50(2), 405-425. https://doi.org/10.1093/jcr/ucac056",
+
+    "Kronrod, A., Lee, J. K., & Gordeliy, I. (2017). Detecting fictitious consumer reviews: A "
+    "theory-driven approach combining automated text analysis and experimental design. "
+    "Marketing Science Institute Working Papers Series, 17-124.",
+
+    "Brysbaert, M., Warriner, A. B., & Kuperman, V. (2014). Concreteness ratings for 40 thousand "
+    "generally known English word lemmas. Behavior Research Methods, 46(3), 904-911. "
+    "https://doi.org/10.3758/s13428-013-0403-5",
+
+    "Miller, G. A. (1995). WordNet: A lexical database for English. Communications of the ACM, "
+    "38(11), 39-41. https://doi.org/10.1145/219717.219748",
+
+    "Fellbaum, C. (Ed.). (1998). WordNet: An Electronic Lexical Database. MIT Press.",
 ]
 
 
@@ -440,6 +456,11 @@ class LingPropsApp:
         for note in VARIABLE_NOTES:
             w("- " + note)
             w()
+        w("=== References ===")
+        w()
+        for ref in REFERENCES:
+            w(ref)
+            w()
         txt.configure(state="disabled")
         ttk.Button(win, text="Close", command=win.destroy).pack(pady=(0, 8))
 
@@ -559,7 +580,8 @@ class LingPropsApp:
                 VARIABLE_DEFS,
                 columns=["column", "previous name (before Oct 2026)", "group",
                          "units / range", "definition"])
-            notes_df = pd.DataFrame({"note": [MEASURE_INTRO] + VARIABLE_NOTES})
+            notes_df = pd.DataFrame({"note": [MEASURE_INTRO] + VARIABLE_NOTES
+                                            + ["", "REFERENCES"] + REFERENCES})
             try:
                 from importlib.metadata import version as _pkg_version
                 _lib_version = _pkg_version("lingprops")
