@@ -1,8 +1,8 @@
 # lingprops-app
 
 Two frontends for the [lingprops](https://github.com/gordeli/lingprops_test)
-library — both compute WordNet-based **concreteness** and BWK
-**tangibility** scores for the rows of an uploaded Excel file.
+library — both compute WordNet-based **concreteness as specificity** and BWK
+**concreteness as tangibility** scores for the rows of an uploaded Excel file.
 
 | Frontend | Where | Best for |
 |---|---|---|
@@ -43,6 +43,14 @@ explain each one, and every result file carries the same definitions on a
 | `adjectives_count` | `content_words_JJ` | Adjective tokens, with repetitions (JJ, JJR, JJS). |
 | `adverbs_count` | `content_words_RB` | Adverb tokens, with repetitions (RB, RBR, RBS). |
 | `numbers_count` | `content_words_CD` | Cardinal-number tokens, with repetitions (CD). |
+
+**The two measures are not the same construct.** Specificity asks how far down a taxonomy a
+word sits — how narrow a category it names. Tangibility asks how far what the word names can be
+perceived through the senses. They correlate but diverge: *mug* (depth 5, rated 4.8/5) and
+*spaniel* (depth 17, rated 4.7/5) are equally touchable yet differ enormously in specificity;
+*nostalgia* (depth 7, rated 1.8/5) is a more specific word than *mug* while naming nothing
+perceptible; *food* (depth 4, rated 4.8/5) is highly perceptible but names a very broad category.
+Neither score validates the other — report whichever matches the construct you mean.
 
 > **Column names changed in October 2026.** Files produced earlier use the names in the
 > middle column; the mapping above is also written into every new output file.

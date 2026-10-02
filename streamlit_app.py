@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LingProps Web App - Concreteness & Tangibility Calculator.
+"""LingProps Web App - Concreteness Calculator.
 
 Streamlit web frontend for the `lingprops` library
 (https://github.com/gordeli/lingprops_test).
@@ -30,7 +30,7 @@ import pandas as pd
 import streamlit as st
 
 st.set_page_config(
-    page_title="LingProps - Concreteness & Tangibility",
+    page_title="LingProps - Concreteness Calculator",
     layout="wide",
 )
 
@@ -62,6 +62,18 @@ METRIC_GROUPS = {
 # Keep this block in sync between streamlit_app.py and desktop/lingprops_app.py
 # ---------------------------------------------------------------------------
 
+
+MEASURE_INTRO = (
+    "The two scores measure different things. Concreteness as SPECIFICITY asks how far "
+    "down a taxonomy a word sits - how narrow a category it names. Concreteness as "
+    "TANGIBILITY asks how far what the word names can be perceived through the senses. "
+    "They often move together, but they are not the same thing, and neither validates the "
+    "other. For example: 'mug' (depth 5, rated 4.8 out of 5) and 'spaniel' (depth 17, "
+    "rated 4.7) are equally touchable yet differ enormously in specificity; 'nostalgia' "
+    "(depth 7, rated 1.8) is a more specific word than 'mug' while naming nothing "
+    "perceptible at all; and 'food' (depth 4, rated 4.8) is highly perceptible but names "
+    "a very broad category. Report whichever matches the construct you mean."
+)
 
 VARIABLE_DEFS = [   # (column, previous name, group, units, definition)
     ("concreteness_specificity_score", "normalized_score_norep", "Specificity", "nats (natural-log units); typically 1.6-2.4",
@@ -159,7 +171,7 @@ def compute_row(text, *, wsd, ner, ner_backend):
 # App
 # ---------------------------------------------------------------------------
 
-st.title("LingProps - Concreteness & Tangibility Calculator")
+st.title("LingProps - Concreteness Calculator")
 st.markdown(
     "Upload an Excel file with text data. The app computes WordNet-based "
     "concreteness and BWK tangibility scores for each row.  "
@@ -177,6 +189,7 @@ def render_variable_page():
         "sheet inside each result file, next to a **Run settings** sheet that "
         "records the options used."
     )
+    st.info(MEASURE_INTRO, icon=None)
     for group in ("Specificity", "Tangibility", "Word counts"):
         st.subheader(group)
         for col, old, grp, units, text in VARIABLE_DEFS:
@@ -333,7 +346,7 @@ with tab_calc:
                 columns=["column", "previous name (before Oct 2026)", "group",
                          "units / range", "definition"],
             )
-            notes_df = pd.DataFrame({"note": VARIABLE_NOTES})
+            notes_df = pd.DataFrame({"note": [MEASURE_INTRO] + VARIABLE_NOTES})
             try:
                 from importlib.metadata import version as _pkg_version
                 _lib_version = _pkg_version("lingprops")

@@ -130,6 +130,18 @@ METRIC_GROUPS = {
 # Output variable documentation  -  keep in sync with ../streamlit_app.py
 # ---------------------------------------------------------------------------
 
+MEASURE_INTRO = (
+    "The two scores measure different things. Concreteness as SPECIFICITY asks how far "
+    "down a taxonomy a word sits - how narrow a category it names. Concreteness as "
+    "TANGIBILITY asks how far what the word names can be perceived through the senses. "
+    "They often move together, but they are not the same thing, and neither validates the "
+    "other. For example: 'mug' (depth 5, rated 4.8 out of 5) and 'spaniel' (depth 17, "
+    "rated 4.7) are equally touchable yet differ enormously in specificity; 'nostalgia' "
+    "(depth 7, rated 1.8) is a more specific word than 'mug' while naming nothing "
+    "perceptible at all; and 'food' (depth 4, rated 4.8) is highly perceptible but names "
+    "a very broad category. Report whichever matches the construct you mean."
+)
+
 VARIABLE_DEFS = [   # (column, previous name, group, units, definition)
     ("concreteness_specificity_score", "normalized_score_norep", "Specificity", "nats (natural-log units); typically 1.6-2.4",
      "Concreteness as specificity. Each content word (noun, verb, adjective, adverb, cardinal "
@@ -242,7 +254,7 @@ def compute_row(text, *, wsd, ner, ner_backend):
 class LingPropsApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("LingProps v1.1 - Concreteness & Tangibility Calculator")
+        self.root.title("LingProps - Concreteness Calculator")
         self.root.geometry("780x780")
         self.root.resizable(True, True)
 
@@ -409,6 +421,8 @@ class LingPropsApp:
         w("The same definitions are written to a 'Variable definitions' sheet inside "
           "every result file, next to a 'Run settings' sheet recording the options used.")
         w()
+        w(MEASURE_INTRO)
+        w()
         for group in ("Specificity", "Tangibility", "Word counts"):
             w("=== " + group + " ===")
             w()
@@ -543,7 +557,7 @@ class LingPropsApp:
                 VARIABLE_DEFS,
                 columns=["column", "previous name (before Oct 2026)", "group",
                          "units / range", "definition"])
-            notes_df = pd.DataFrame({"note": VARIABLE_NOTES})
+            notes_df = pd.DataFrame({"note": [MEASURE_INTRO] + VARIABLE_NOTES})
             try:
                 from importlib.metadata import version as _pkg_version
                 _lib_version = _pkg_version("lingprops")
