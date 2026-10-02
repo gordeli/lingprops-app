@@ -62,7 +62,7 @@ reproducing prior published results).
 ## Run locally
 
 ```bash
-git clone https://github.com/<your-user>/lingprops-app.git
+git clone https://github.com/gordeli/lingprops-app.git
 cd lingprops-app
 python -m pip install -r requirements.txt
 streamlit run streamlit_app.py

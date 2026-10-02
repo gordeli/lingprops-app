@@ -138,8 +138,9 @@ with st.sidebar:
 
     st.markdown("---")
     st.caption(
-        "Source: [lingprops-app](https://github.com/) | "
-        "Library: [lingprops](https://github.com/gordeli/lingprops_test)"
+        "Source: [lingprops-app](https://github.com/gordeli/lingprops-app) | "
+        "Library: [lingprops](https://github.com/gordeli/lingprops_test) "
+        "(pinned to v1.2.0)"
     )
 
 # --- Upload ----------------------------------------------------------------
