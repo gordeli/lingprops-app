@@ -148,6 +148,9 @@ VARIABLE_NOTES = [
 ]
 
 REFERENCES = [
+    "Gordeliy, I., & Kronrod, A. (2026). Concreteness as Specificity: From Definition to "
+    "Calculation. ISMS 2026, Lisbon, Portugal, June 11-14, 2026.",
+
     "Kronrod, A., Gordeliy, I., & Lee, J. K. (2023). Been There, Done That: How Episodic and "
     "Semantic Memory Affects the Language of Authentic and Fictitious Reviews. Journal of "
     "Consumer Research, 50(2), 405-425. https://doi.org/10.1093/jcr/ucac056",

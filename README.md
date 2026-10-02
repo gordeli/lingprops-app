@@ -128,6 +128,9 @@ on the right-hand sidebar.
 
 ### APA
 
+- Gordeliy, I., & Kronrod, A. (2026). *Concreteness as Specificity: From
+  Definition to Calculation.* **ISMS 2026**, Lisbon, Portugal, June 11–14,
+  2026. *(presentation of this measure and tool)*
 - Kronrod, A., Gordeliy, I., & Lee, J. K. (2023). *Been There, Done
   That: How Episodic and Semantic Memory Affects the Language of
   Authentic and Fictitious Reviews.* **Journal of Consumer Research**,
