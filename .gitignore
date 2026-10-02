@@ -37,3 +37,9 @@ desktop/build/
 desktop/dist/
 desktop/Output/
 *.spec.bak
+
+# local build artefacts (never commit the binary or build logs)
+_prev_build/
+desktop/_prev_build/
+build_*.log
+desktop/build_*.log

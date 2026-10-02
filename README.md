@@ -26,20 +26,30 @@ documented in:
 
 ## What the app outputs
 
-For each row of the uploaded file, ten metrics:
+For each row of the uploaded file, ten metrics. The **Output variables** page in the
+web app (sidebar) and the **"What do the columns mean?"** button in the desktop app
+explain each one, and every result file carries the same definitions on a
+*Variable definitions* sheet plus the options used on a *Run settings* sheet.
 
-| Group | Metric | Meaning |
+| Column | Previous name | What it is |
 |---|---|---|
-| **Concreteness** (no repetitions) | `normalized_score_norep` | WordNet hypernym-depth concreteness, averaged over unique noun lemmas |
-|                                    | `count_norep`            | Number of unique noun lemmas the score is based on |
-| **Tangibility BWK** (with repetitions) | `tang_normalized_score` | Brysbaert et al. (2014) human-rated concreteness, averaged over tokens |
-|                                         | `tang_count`            | Number of tokens covered by the BWK lexicon |
-| **Word counts**                    | `word_count`             | Total words in the text |
-|                                    | `content_words_NN`       | Noun token count |
-|                                    | `content_words_VB`       | Verb token count |
-|                                    | `content_words_JJ`       | Adjective token count |
-|                                    | `content_words_RB`       | Adverb token count |
-|                                    | `content_words_CD`       | Cardinal-number token count |
+| `concreteness_specificity` | `normalized_score_norep` | Concreteness as specificity: mean of log(d+1) over the text's unique content-word lemmas, where d is the number of distinct WordNet ancestors of the word's sense. Natural-log units, typically 1.6–2.4. Higher = more specific. |
+| `concreteness_scored_words` | `count_norep` | The number of words that made a **non-zero** contribution to the concreteness score — its denominator. Words with no WordNet noun sense are not counted. |
+| `tangibility_bwk` | `tang_normalized_score` | Mean human concreteness rating (Brysbaert, Warriner & Kuperman 2014), 1 = abstract to 5 = concrete, over content-word tokens **with** repetitions. |
+| `tangibility_scored_words` | `tang_count` | The number of tokens found in the BWK list — the denominator of `tangibility_bwk`. |
+| `word_count` | *(unchanged)* | Total word tokens including function words. Neither score is divided by it. |
+| `nouns_count` | `content_words_NN` | Noun tokens, with repetitions (NN, NNS, NNP, NNPS). |
+| `verbs_count` | `content_words_VB` | Verb tokens, with repetitions (all VB*). |
+| `adjectives_count` | `content_words_JJ` | Adjective tokens, with repetitions (JJ, JJR, JJS). |
+| `adverbs_count` | `content_words_RB` | Adverb tokens, with repetitions (RB, RBR, RBS). |
+| `numbers_count` | `content_words_CD` | Cardinal-number tokens, with repetitions (CD). |
+
+> **Column names changed in October 2026.** Files produced earlier use the names in the
+> middle column; the mapping above is also written into every new output file.
+
+Note the deliberate asymmetry: concreteness counts each unique lemma once, tangibility
+counts every token. The part-of-speech counts are counts of *candidates* for scoring, not
+of scored words.
 
 ---
 

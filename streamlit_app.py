@@ -41,22 +41,92 @@ st.set_page_config(
 
 METRIC_GROUPS = {
     "Concreteness (no repetitions)": [
-        ("normalized_score_norep", "Normalized (norep)"),
-        ("count_norep",            "Norm count (norep)"),
+        ("concreteness_specificity",   "Concreteness as specificity"),
+        ("concreteness_scored_words",  "Words the score is based on"),
     ],
     "Tangibility BWK (with repetitions)": [
-        ("tang_normalized_score", "Normalized"),
-        ("tang_count",            "BWK word count"),
+        ("tangibility_bwk",            "Tangibility (BWK 1-5)"),
+        ("tangibility_scored_words",   "Words the score is based on"),
     ],
     "Word counts": [
-        ("word_count",        "Total word count"),
-        ("content_words_NN",  "Noun count"),
-        ("content_words_VB",  "Verb count"),
-        ("content_words_JJ",  "Adjective count"),
-        ("content_words_RB",  "Adverb count"),
-        ("content_words_CD",  "Cardinal-number count"),
+        ("word_count",       "Total words"),
+        ("nouns_count",       "Nouns"),
+        ("verbs_count",       "Verbs"),
+        ("adjectives_count",  "Adjectives"),
+        ("adverbs_count",     "Adverbs"),
+        ("numbers_count",     "Cardinal numbers"),
     ],
 }
+
+
+# Keep this block in sync between streamlit_app.py and desktop/lingprops_app.py
+# ---------------------------------------------------------------------------
+
+
+VARIABLE_DEFS = [   # (column, previous name, group, units, definition)
+    ("concreteness_specificity", "normalized_score_norep", "Concreteness", "nats (natural-log units); typically 1.6-2.4",
+     "Concreteness as specificity. Each content word (noun, verb, adjective, adverb, cardinal "
+     "number) is mapped to a WordNet noun sense; d is the number of distinct ancestors "
+     "(hypernyms) of that sense, and the word contributes log(d + 1). The score is the mean of "
+     "those contributions over the text's UNIQUE word lemmas - each lemma counted once, within "
+     "its part of speech. Higher = more specific (words sitting lower in the WordNet hierarchy). "
+     "Divided by concreteness_scored_words, NOT by word_count."),
+
+    ("concreteness_scored_words", "count_norep", "Concreteness", "count of unique lemmas",
+     "The number of words that made a NON-ZERO contribution to the concreteness score - that "
+     "is, the denominator of concreteness_specificity. A content word contributes nothing, "
+     "and is not counted here, if it has no WordNet noun sense after lemmatisation and NER "
+     "substitution, if its depth is 0, if the lemma is shorter than two characters, or if it "
+     "is on the exclusion list. Each lemma counts at most once. Always smaller than or equal "
+     "to the sum of the part-of-speech counts below."),
+
+    ("tangibility_bwk", "tang_normalized_score", "Tangibility", "1 (abstract) to 5 (concrete)",
+     "Tangibility: the mean human concreteness rating of the text's content words, taken from "
+     "Brysbaert, Warriner & Kuperman (2014), who collected ratings for 40,000 English lemmas on "
+     "a 1-5 scale. Counted WITH repetitions - every token counts. Words absent from the BWK list "
+     "are ignored."),
+
+    ("tangibility_scored_words", "tang_count", "Tangibility", "count of tokens",
+     "The denominator of tangibility_bwk: the number of content-word tokens that were found in "
+     "the Brysbaert et al. list."),
+
+    ("word_count", "word_count (unchanged)", "Word counts", "count of tokens",
+     "Total number of word tokens in the text, including function words (the, of, and ...). "
+     "Reported for reference only: neither score is divided by it."),
+
+    ("nouns_count", "content_words_NN", "Word counts", "count of tokens",
+     "Noun tokens, with repetitions (Penn Treebank tags NN, NNS, NNP, NNPS)."),
+
+    ("verbs_count", "content_words_VB", "Word counts", "count of tokens",
+     "Verb tokens, with repetitions (all VB* tags)."),
+
+    ("adjectives_count", "content_words_JJ", "Word counts", "count of tokens",
+     "Adjective tokens, with repetitions (JJ, JJR, JJS)."),
+
+    ("adverbs_count", "content_words_RB", "Word counts", "count of tokens",
+     "Adverb tokens, with repetitions (RB, RBR, RBS)."),
+
+    ("numbers_count", "content_words_CD", "Word counts", "count of tokens",
+     "Cardinal-number tokens, with repetitions (CD) - for example 'three', '2019'."),
+]
+
+VARIABLE_NOTES = [
+    "The two scores are built differently on purpose: concreteness counts each unique lemma "
+    "once (no repetitions), tangibility counts every token (with repetitions).",
+    "The two scores are on different scales (log depth vs a 1-5 rating) and should not be "
+    "compared in absolute value - only across texts, within one measure.",
+    "The part-of-speech counts are counts of CANDIDATES for scoring, not of scored words: a "
+    "word counted there can still be unscored if it has no WordNet sense.",
+    "Settings change the numbers. The word-sense disambiguation strategy and named-entity "
+    "recognition both affect concreteness_specificity; the run settings are recorded on the "
+    "'Run settings' sheet of every output file.",
+    "Very short texts give unstable scores, because the mean is taken over few words. Treat "
+    "texts with fewer than about 30 scored words with caution.",
+    "Reference: Kronrod, A., Gordeliy, I., & Lee, J. K. (2023). Been There, Done That. "
+    "Journal of Consumer Research, 50(2), 405-425. Brysbaert, M., Warriner, A. B., & Kuperman, "
+    "V. (2014). Concreteness ratings for 40 thousand generally known English word lemmas. "
+    "Behavior Research Methods, 46(3), 904-911.",
+]
 
 
 def compute_row(text, *, wsd, ner, ner_backend):
@@ -67,16 +137,17 @@ def compute_row(text, *, wsd, ner, ner_backend):
     row = {}
     r = compute_concreteness(text, wsd=wsd, ner=ner, ner_backend=ner_backend)
     t = r["total"]
-    row["normalized_score_norep"] = t["normalized_score_norep"]
-    row["count_norep"]            = t["count_norep"]
-    row["word_count"]             = t["word_count"]
-    for pos in ("NN", "VB", "JJ", "RB", "CD"):
-        row[f"content_words_{pos}"] = t["content_word_counts"][pos]
+    row["concreteness_specificity"]  = t["normalized_score_norep"]
+    row["concreteness_scored_words"] = t["count_norep"]
+    row["word_count"]               = t["word_count"]
+    for pos, name in (("NN", "nouns"), ("VB", "verbs"), ("JJ", "adjectives"),
+                      ("RB", "adverbs"), ("CD", "numbers")):
+        row[f"{name}_count"] = t["content_word_counts"][pos]
 
     tr = compute_tangibility(text)
     tt = tr["total"]
-    row["tang_normalized_score"] = tt["normalized_score"]
-    row["tang_count"]            = tt["count"]
+    row["tangibility_bwk"]          = tt["normalized_score"]
+    row["tangibility_scored_words"] = tt["count"]
     return row
 
 
@@ -91,6 +162,38 @@ st.markdown(
     "Built on the [lingprops](https://github.com/gordeli/lingprops_test) "
     "library (Kronrod, Gordeliy & Lee 2023, *Journal of Consumer Research*)."
 )
+
+# --- Page selector ---------------------------------------------------------
+PAGE_CALC, PAGE_VARS = "Calculator", "Output variables"
+page = st.sidebar.radio("Page", [PAGE_CALC, PAGE_VARS], index=0)
+
+
+def render_variable_page():
+    """Information page: what every column of the output file means."""
+    st.header("Output variables")
+    st.markdown(
+        "Every column the app adds to your file, what it means, and what it is "
+        "measured in. The same table is written to a **Variable definitions** "
+        "sheet inside each result file, next to a **Run settings** sheet that "
+        "records the options used."
+    )
+    for group in ("Concreteness", "Tangibility", "Word counts"):
+        st.subheader(group)
+        for col, old, grp, units, text in VARIABLE_DEFS:
+            if grp != group:
+                continue
+            st.markdown(f"**`{col}`** — *{units}*")
+            st.markdown(text)
+            st.caption(f"Called `{old}` in files produced before October 2026.")
+            st.markdown("")
+    st.subheader("Things worth knowing")
+    for note in VARIABLE_NOTES:
+        st.markdown(f"- {note}")
+
+
+if page == PAGE_VARS:
+    render_variable_page()
+    st.stop()
 
 # --- Library options (sidebar) ---------------------------------------------
 with st.sidebar:
@@ -217,8 +320,40 @@ if uploaded is not None:
         st.subheader("Results")
         st.dataframe(out.head(20), use_container_width=True)
 
+        st.caption(
+            "Not sure what a column means? See the **Output variables** page "
+            "in the sidebar — the same definitions are included in the file."
+        )
+
+        defs_df = pd.DataFrame(
+            [(c, old, grp, units, text) for c, old, grp, units, text in VARIABLE_DEFS],
+            columns=["column", "previous name (before Oct 2026)", "group",
+                     "units / range", "definition"],
+        )
+        notes_df = pd.DataFrame({"note": VARIABLE_NOTES})
+        try:
+            from importlib.metadata import version as _pkg_version
+            _lib_version = _pkg_version("lingprops")
+        except Exception:
+            _lib_version = "unknown"
+        settings_df = pd.DataFrame(
+            [("app", "LingProps web app"),
+             ("lingprops version", _lib_version),
+             ("run (UTC)", pd.Timestamp.utcnow().strftime("%Y-%m-%d %H:%M")),
+             ("text column", str(col)),
+             ("rows processed", str(len(df))),
+             ("WSD strategy", str(wsd)),
+             ("NER", "on" if ner else "off"),
+             ("NER backend", str(ner_backend) if ner else "n/a")],
+            columns=["setting", "value"],
+        )
+
         buf = io.BytesIO()
-        out.to_excel(buf, index=False, engine="openpyxl")
+        with pd.ExcelWriter(buf, engine="openpyxl") as _xl:
+            out.to_excel(_xl, index=False, sheet_name="Results")
+            defs_df.to_excel(_xl, index=False, sheet_name="Variable definitions")
+            notes_df.to_excel(_xl, index=False, sheet_name="Notes")
+            settings_df.to_excel(_xl, index=False, sheet_name="Run settings")
         buf.seek(0)
         st.download_button(
             label="Download Results (Excel)",
