@@ -42,11 +42,11 @@ st.set_page_config(
 METRIC_GROUPS = {
     "Concreteness (no repetitions)": [
         ("concreteness_specificity",   "Concreteness as specificity"),
-        ("concreteness_scored_words",  "Words the score is based on"),
+        ("words_used",  "Words used (concreteness)"),
     ],
     "Tangibility BWK (with repetitions)": [
         ("tangibility_bwk",            "Tangibility (BWK 1-5)"),
-        ("tangibility_scored_words",   "Words the score is based on"),
+        ("words_used_bwk",   "Words used (tangibility)"),
     ],
     "Word counts": [
         ("word_count",       "Total words"),
@@ -70,15 +70,16 @@ VARIABLE_DEFS = [   # (column, previous name, group, units, definition)
      "(hypernyms) of that sense, and the word contributes log(d + 1). The score is the mean of "
      "those contributions over the text's UNIQUE word lemmas - each lemma counted once, within "
      "its part of speech. Higher = more specific (words sitting lower in the WordNet hierarchy). "
-     "Divided by concreteness_scored_words, NOT by word_count."),
+     "Divided by words_used, NOT by word_count."),
 
-    ("concreteness_scored_words", "count_norep", "Concreteness", "count of unique lemmas",
+    ("words_used", "count_norep", "Concreteness", "count of unique lemmas",
      "The number of words that made a NON-ZERO contribution to the concreteness score - that "
      "is, the denominator of concreteness_specificity. A content word contributes nothing, "
      "and is not counted here, if it has no WordNet noun sense after lemmatisation and NER "
      "substitution, if its depth is 0, if the lemma is shorter than two characters, or if it "
      "is on the exclusion list. Each lemma counts at most once. Always smaller than or equal "
-     "to the sum of the part-of-speech counts below."),
+     "to the sum of the part-of-speech counts below. The tangibility score has its "
+     "own, separate count: words_used_bwk."),
 
     ("tangibility_bwk", "tang_normalized_score", "Tangibility", "1 (abstract) to 5 (concrete)",
      "Tangibility: the mean human concreteness rating of the text's content words, taken from "
@@ -86,9 +87,10 @@ VARIABLE_DEFS = [   # (column, previous name, group, units, definition)
      "a 1-5 scale. Counted WITH repetitions - every token counts. Words absent from the BWK list "
      "are ignored."),
 
-    ("tangibility_scored_words", "tang_count", "Tangibility", "count of tokens",
-     "The denominator of tangibility_bwk: the number of content-word tokens that were found in "
-     "the Brysbaert et al. list."),
+    ("words_used_bwk", "tang_count", "Tangibility", "count of tokens",
+     "The number of words used to compute tangibility_bwk: content-word tokens found in the "
+     "Brysbaert et al. list. Counted WITH repetitions, so it is not the same thing as "
+     "words_used, which is the (unique-lemma) count behind the concreteness score."),
 
     ("word_count", "word_count (unchanged)", "Word counts", "count of tokens",
      "Total number of word tokens in the text, including function words (the, of, and ...). "
@@ -137,8 +139,8 @@ def compute_row(text, *, wsd, ner, ner_backend):
     row = {}
     r = compute_concreteness(text, wsd=wsd, ner=ner, ner_backend=ner_backend)
     t = r["total"]
-    row["concreteness_specificity"]  = t["normalized_score_norep"]
-    row["concreteness_scored_words"] = t["count_norep"]
+    row["concreteness_specificity"] = t["normalized_score_norep"]
+    row["words_used"]               = t["count_norep"]
     row["word_count"]               = t["word_count"]
     for pos, name in (("NN", "nouns"), ("VB", "verbs"), ("JJ", "adjectives"),
                       ("RB", "adverbs"), ("CD", "numbers")):
@@ -146,8 +148,8 @@ def compute_row(text, *, wsd, ner, ner_backend):
 
     tr = compute_tangibility(text)
     tt = tr["total"]
-    row["tangibility_bwk"]          = tt["normalized_score"]
-    row["tangibility_scored_words"] = tt["count"]
+    row["tangibility_bwk"] = tt["normalized_score"]
+    row["words_used_bwk"]  = tt["count"]
     return row
 
 
