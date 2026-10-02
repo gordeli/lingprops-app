@@ -167,14 +167,10 @@ st.markdown(
     "library (Kronrod, Gordeliy & Lee 2023, *Journal of Consumer Research*)."
 )
 
-# --- Page selector ---------------------------------------------------------
-PAGE_CALC, PAGE_VARS = "Calculator", "Output variables"
-page = st.sidebar.radio("Page", [PAGE_CALC, PAGE_VARS], index=0)
-
 
 def render_variable_page():
     """Information page: what every column of the output file means."""
-    st.header("Output variables")
+    st.header("Output variables explanation")
     st.markdown(
         "Every column the app adds to your file, what it means, and what it is "
         "measured in. The same table is written to a **Variable definitions** "
@@ -195,173 +191,176 @@ def render_variable_page():
         st.markdown(f"- {note}")
 
 
-if page == PAGE_VARS:
+# --- Tabs ------------------------------------------------------------------
+tab_calc, tab_vars = st.tabs(["Calculator", "Output variables explanation"])
+
+with tab_vars:
     render_variable_page()
-    st.stop()
 
-# --- Library options (sidebar) ---------------------------------------------
-with st.sidebar:
-    st.header("Library options")
-    st.caption("Defaults match `lingprops.compute_concreteness` defaults.")
-    wsd = st.selectbox(
-        "WSD strategy",
-        options=["first", "lesk", "neural"],
-        index=1,  # 'lesk' is the library default
-        help="`lesk` (default) uses gloss-overlap with MFS fallback - "
-             "context-aware at ~2x the cost of `first`. `first` reproduces "
-             "the original library behaviour and is fastest. `neural` uses "
-             "a sentence-transformer and is the most accurate.",
-    )
-    ner = st.checkbox(
-        "Use NER",
-        value=True,
-        help="Substitute proper nouns not in WordNet (e.g. 'Alice') with "
-             "the lemma of their entity category before computing depth.",
-    )
-    ner_backend = st.selectbox(
-        "NER backend",
-        options=["spacy", "nltk", "auto"],
-        index=0,
-        disabled=not ner,
-        help="`spacy` (default, recommended) is ~13x faster and ~40 F1 "
-             "points more accurate than `nltk`. `auto` falls back to NLTK "
-             "if the spaCy model is not installed.",
-    )
+with tab_calc:
+    # --- Library options (sidebar) ---------------------------------------------
+    with st.sidebar:
+        st.header("Library options")
+        st.caption("Defaults match `lingprops.compute_concreteness` defaults.")
+        wsd = st.selectbox(
+            "WSD strategy",
+            options=["first", "lesk", "neural"],
+            index=1,  # 'lesk' is the library default
+            help="`lesk` (default) uses gloss-overlap with MFS fallback - "
+                 "context-aware at ~2x the cost of `first`. `first` reproduces "
+                 "the original library behaviour and is fastest. `neural` uses "
+                 "a sentence-transformer and is the most accurate.",
+        )
+        ner = st.checkbox(
+            "Use NER",
+            value=True,
+            help="Substitute proper nouns not in WordNet (e.g. 'Alice') with "
+                 "the lemma of their entity category before computing depth.",
+        )
+        ner_backend = st.selectbox(
+            "NER backend",
+            options=["spacy", "nltk", "auto"],
+            index=0,
+            disabled=not ner,
+            help="`spacy` (default, recommended) is ~13x faster and ~40 F1 "
+                 "points more accurate than `nltk`. `auto` falls back to NLTK "
+                 "if the spaCy model is not installed.",
+        )
 
-    st.markdown("---")
-    st.markdown("**Choosing parameters by dataset size**")
-    st.caption(
-        "- **< 10k texts** (small) - try `wsd=neural` for the highest "
-        "accuracy; the ~100x CPU cost (~3-4 min for 10k) is usually fine.\n"
-        "- **10k - 1M texts** (medium) - keep `wsd=lesk` (the default); "
-        "context-aware and fast.\n"
-        "- **1M - 100M texts** (large) - keep `wsd=lesk`; consider "
-        "`ner_backend=nltk` only if spaCy is unavailable.\n"
-        "- **> 100M texts** (very large) - `wsd=first` saves time when "
-        "the synset pick matters less than throughput.\n"
-        "- **Reproducing prior published results** - use `wsd=first` and "
-        "uncheck *Use NER*."
-    )
-
-    st.markdown("---")
-    st.caption(
-        "Source: [lingprops-app](https://github.com/gordeli/lingprops-app) | "
-        "Library: [lingprops](https://github.com/gordeli/lingprops_test) "
-        "(pinned to v1.2.0)"
-    )
-
-# --- Upload ----------------------------------------------------------------
-uploaded = st.file_uploader("Upload Excel file", type=["xlsx", "xls"])
-
-if uploaded is not None:
-    df = pd.read_excel(uploaded)
-    st.success(f"Loaded {len(df)} rows, {len(df.columns)} columns")
-
-    col = st.selectbox(
-        "Select the text column",
-        options=df.columns.tolist(),
-        index=next(
-            (i for i, c in enumerate(df.columns)
-             if "text" in c.lower() or "review" in c.lower()),
-            0,
-        ),
-    )
-
-    st.subheader("Preview")
-    st.dataframe(df[[col]].head(5), use_container_width=True)
-
-    # --- Metric selection ---
-    st.subheader("Select output metrics")
-    selected_keys: list[str] = []
-    cols_ui = st.columns(3)
-    for gi, (group_name, metrics) in enumerate(METRIC_GROUPS.items()):
-        with cols_ui[gi % 3]:
-            st.markdown(f"**{group_name}**")
-            for key, desc in metrics:
-                if st.checkbox(desc, value=True, key=f"cb_{key}"):
-                    selected_keys.append(key)
-
-    # --- Run ---
-    if st.button("Run", type="primary", disabled=len(selected_keys) == 0):
-        from lingprops import ensure_nltk_data
-
-        progress = st.progress(0, text="Initialising...")
-
-        ensure_nltk_data()
-
-        if ner and ner_backend in ("spacy", "auto"):
-            try:
-                from lingprops import ensure_spacy_model
-                ensure_spacy_model()
-            except Exception as e:
-                if ner_backend == "spacy":
-                    st.error(f"spaCy model unavailable: {e}")
-                    st.stop()
-                st.warning(f"spaCy unavailable; using NLTK fallback ({e}).")
-
-        from lingprops import compute_concreteness
-        compute_concreteness("warmup", wsd=wsd, ner=ner, ner_backend=ner_backend)
-
-        n = len(df)
-        rows = []
-        for i, text in enumerate(df[col]):
-            if pd.isna(text) or str(text).strip() == "":
-                rows.append({k: None for k in selected_keys})
-            else:
-                full = compute_row(str(text), wsd=wsd, ner=ner,
-                                   ner_backend=ner_backend)
-                rows.append({k: full.get(k) for k in selected_keys})
-
-            if (i + 1) % max(1, n // 100) == 0 or i == n - 1:
-                progress.progress((i + 1) / n,
-                                  text=f"Processing {i+1}/{n}...")
-
-        progress.progress(1.0, text="Done!")
-
-        result_df = pd.DataFrame(rows)
-        out = pd.concat([df, result_df], axis=1)
-
-        st.subheader("Results")
-        st.dataframe(out.head(20), use_container_width=True)
-
+        st.markdown("---")
+        st.markdown("**Choosing parameters by dataset size**")
         st.caption(
-            "Not sure what a column means? See the **Output variables** page "
-            "in the sidebar — the same definitions are included in the file."
+            "- **< 10k texts** (small) - try `wsd=neural` for the highest "
+            "accuracy; the ~100x CPU cost (~3-4 min for 10k) is usually fine.\n"
+            "- **10k - 1M texts** (medium) - keep `wsd=lesk` (the default); "
+            "context-aware and fast.\n"
+            "- **1M - 100M texts** (large) - keep `wsd=lesk`; consider "
+            "`ner_backend=nltk` only if spaCy is unavailable.\n"
+            "- **> 100M texts** (very large) - `wsd=first` saves time when "
+            "the synset pick matters less than throughput.\n"
+            "- **Reproducing prior published results** - use `wsd=first` and "
+            "uncheck *Use NER*."
         )
 
-        defs_df = pd.DataFrame(
-            [(c, old, grp, units, text) for c, old, grp, units, text in VARIABLE_DEFS],
-            columns=["column", "previous name (before Oct 2026)", "group",
-                     "units / range", "definition"],
-        )
-        notes_df = pd.DataFrame({"note": VARIABLE_NOTES})
-        try:
-            from importlib.metadata import version as _pkg_version
-            _lib_version = _pkg_version("lingprops")
-        except Exception:
-            _lib_version = "unknown"
-        settings_df = pd.DataFrame(
-            [("app", "LingProps web app"),
-             ("lingprops version", _lib_version),
-             ("run (UTC)", pd.Timestamp.utcnow().strftime("%Y-%m-%d %H:%M")),
-             ("text column", str(col)),
-             ("rows processed", str(len(df))),
-             ("WSD strategy", str(wsd)),
-             ("NER", "on" if ner else "off"),
-             ("NER backend", str(ner_backend) if ner else "n/a")],
-            columns=["setting", "value"],
+        st.markdown("---")
+        st.caption(
+            "Source: [lingprops-app](https://github.com/gordeli/lingprops-app) | "
+            "Library: [lingprops](https://github.com/gordeli/lingprops_test) "
+            "(pinned to v1.2.0)"
         )
 
-        buf = io.BytesIO()
-        with pd.ExcelWriter(buf, engine="openpyxl") as _xl:
-            out.to_excel(_xl, index=False, sheet_name="Results")
-            defs_df.to_excel(_xl, index=False, sheet_name="Variable definitions")
-            notes_df.to_excel(_xl, index=False, sheet_name="Notes")
-            settings_df.to_excel(_xl, index=False, sheet_name="Run settings")
-        buf.seek(0)
-        st.download_button(
-            label="Download Results (Excel)",
-            data=buf,
-            file_name="lingprops_results.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    # --- Upload ----------------------------------------------------------------
+    uploaded = st.file_uploader("Upload Excel file", type=["xlsx", "xls"])
+
+    if uploaded is not None:
+        df = pd.read_excel(uploaded)
+        st.success(f"Loaded {len(df)} rows, {len(df.columns)} columns")
+
+        col = st.selectbox(
+            "Select the text column",
+            options=df.columns.tolist(),
+            index=next(
+                (i for i, c in enumerate(df.columns)
+                 if "text" in c.lower() or "review" in c.lower()),
+                0,
+            ),
         )
+
+        st.subheader("Preview")
+        st.dataframe(df[[col]].head(5), use_container_width=True)
+
+        # --- Metric selection ---
+        st.subheader("Select output metrics")
+        selected_keys: list[str] = []
+        cols_ui = st.columns(3)
+        for gi, (group_name, metrics) in enumerate(METRIC_GROUPS.items()):
+            with cols_ui[gi % 3]:
+                st.markdown(f"**{group_name}**")
+                for key, desc in metrics:
+                    if st.checkbox(desc, value=True, key=f"cb_{key}"):
+                        selected_keys.append(key)
+
+        # --- Run ---
+        if st.button("Run", type="primary", disabled=len(selected_keys) == 0):
+            from lingprops import ensure_nltk_data
+
+            progress = st.progress(0, text="Initialising...")
+
+            ensure_nltk_data()
+
+            if ner and ner_backend in ("spacy", "auto"):
+                try:
+                    from lingprops import ensure_spacy_model
+                    ensure_spacy_model()
+                except Exception as e:
+                    if ner_backend == "spacy":
+                        st.error(f"spaCy model unavailable: {e}")
+                        st.stop()
+                    st.warning(f"spaCy unavailable; using NLTK fallback ({e}).")
+
+            from lingprops import compute_concreteness
+            compute_concreteness("warmup", wsd=wsd, ner=ner, ner_backend=ner_backend)
+
+            n = len(df)
+            rows = []
+            for i, text in enumerate(df[col]):
+                if pd.isna(text) or str(text).strip() == "":
+                    rows.append({k: None for k in selected_keys})
+                else:
+                    full = compute_row(str(text), wsd=wsd, ner=ner,
+                                       ner_backend=ner_backend)
+                    rows.append({k: full.get(k) for k in selected_keys})
+
+                if (i + 1) % max(1, n // 100) == 0 or i == n - 1:
+                    progress.progress((i + 1) / n,
+                                      text=f"Processing {i+1}/{n}...")
+
+            progress.progress(1.0, text="Done!")
+
+            result_df = pd.DataFrame(rows)
+            out = pd.concat([df, result_df], axis=1)
+
+            st.subheader("Results")
+            st.dataframe(out.head(20), use_container_width=True)
+
+            st.caption(
+                "Not sure what a column means? See the **Output variables explanation** "
+                "tab at the top — the same definitions are also included in the file."
+            )
+
+            defs_df = pd.DataFrame(
+                [(c, old, grp, units, text) for c, old, grp, units, text in VARIABLE_DEFS],
+                columns=["column", "previous name (before Oct 2026)", "group",
+                         "units / range", "definition"],
+            )
+            notes_df = pd.DataFrame({"note": VARIABLE_NOTES})
+            try:
+                from importlib.metadata import version as _pkg_version
+                _lib_version = _pkg_version("lingprops")
+            except Exception:
+                _lib_version = "unknown"
+            settings_df = pd.DataFrame(
+                [("app", "LingProps web app"),
+                 ("lingprops version", _lib_version),
+                 ("run (UTC)", pd.Timestamp.utcnow().strftime("%Y-%m-%d %H:%M")),
+                 ("text column", str(col)),
+                 ("rows processed", str(len(df))),
+                 ("WSD strategy", str(wsd)),
+                 ("NER", "on" if ner else "off"),
+                 ("NER backend", str(ner_backend) if ner else "n/a")],
+                columns=["setting", "value"],
+            )
+
+            buf = io.BytesIO()
+            with pd.ExcelWriter(buf, engine="openpyxl") as _xl:
+                out.to_excel(_xl, index=False, sheet_name="Results")
+                defs_df.to_excel(_xl, index=False, sheet_name="Variable definitions")
+                notes_df.to_excel(_xl, index=False, sheet_name="Notes")
+                settings_df.to_excel(_xl, index=False, sheet_name="Run settings")
+            buf.seek(0)
+            st.download_button(
+                label="Download Results (Excel)",
+                data=buf,
+                file_name="lingprops_results.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
