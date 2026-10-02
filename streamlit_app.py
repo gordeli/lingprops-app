@@ -75,9 +75,11 @@ VARIABLE_DEFS = [   # (column, previous name, group, units, definition)
     ("concreteness_specificity_words", "count_norep", "Specificity", "count of unique lemmas",
      "The number of words that made a NON-ZERO contribution to the concreteness score - that "
      "is, the denominator of concreteness_specificity_score. A content word contributes nothing, "
-     "and is not counted here, if it has no WordNet noun sense after lemmatisation and NER "
-     "substitution, if its depth is 0, if the lemma is shorter than two characters, or if it "
-     "is on the exclusion list. Each lemma counts at most once. Always smaller than or equal "
+     "and is not counted here, if WordNet has no noun sense for it after lemmatisation and NER "
+     "substitution (brand names, slang, typos, neologisms), if the lemma is shorter than two "
+     "characters, or if it is on the exclusion list. The one word at depth 0 - 'entity', the "
+     "root of the WordNet noun hierarchy - does count, contributing zero. Each lemma counts at "
+     "most once. Always smaller than or equal "
      "to the sum of the part-of-speech counts below. The tangibility score has its "
      "own, separate count: concreteness_tangibility_words."),
 
