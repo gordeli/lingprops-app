@@ -5,7 +5,8 @@ Changes from v1.0:
   - Output trimmed: only normalised quantities and word counts are exposed
     (raw scores and per-POS scores are dropped).  POS word counts kept.
   - Library option controls: WSD strategy, NER on/off, NER backend.
-    Defaults match `lingprops.compute_concreteness` defaults exactly:
+    WSD / NER options affect the concreteness-as-specificity score only;
+    tangibility does not depend on them. Defaults:
         wsd          = "lesk"
         ner          = True
         ner_backend  = "spacy"
@@ -131,15 +132,16 @@ METRIC_GROUPS = {
 # ---------------------------------------------------------------------------
 
 MEASURE_INTRO = (
-    "The two scores measure different things. Concreteness as SPECIFICITY asks how far "
-    "down a taxonomy a word sits - how narrow a category it names. Concreteness as "
-    "TANGIBILITY asks how far what the word names can be perceived through the senses. "
-    "They often move together, but they are not the same thing, and neither validates the "
-    "other. For example: 'mug' (depth 5, rated 4.8 out of 5) and 'spaniel' (depth 17, "
-    "rated 4.7) are equally touchable yet differ enormously in specificity; 'nostalgia' "
-    "(depth 7, rated 1.8) is a more specific word than 'mug' while naming nothing "
-    "perceptible at all; and 'food' (depth 4, rated 4.8) is highly perceptible but names "
-    "a very broad category. Report whichever matches the construct you mean."
+    "This calculator provides two concreteness scores: concreteness as specificity and "
+    "concreteness as tangibility. They measure different things. Specificity asks how far "
+    "down a taxonomy a word sits - how narrow a category it names. Tangibility asks how "
+    "far what the word names can be perceived through the senses. The two often move "
+    "together, but they are not the same thing, and neither validates the other. For "
+    "example: 'mug' (depth 5, rated 4.8 out of 5) and 'spaniel' (depth 17, rated 4.7) are "
+    "equally touchable yet differ enormously in specificity; 'nostalgia' (depth 7, rated "
+    "1.8) is a more specific word than 'mug' while naming nothing perceptible at all; and "
+    "'food' (depth 4, rated 4.8) is highly perceptible but names a very broad category. "
+    "Report whichever matches the construct you mean."
 )
 
 VARIABLE_DEFS = [   # (column, previous name, group, units, definition)

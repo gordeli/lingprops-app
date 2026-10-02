@@ -64,15 +64,16 @@ METRIC_GROUPS = {
 
 
 MEASURE_INTRO = (
-    "The two scores measure different things. Concreteness as SPECIFICITY asks how far "
-    "down a taxonomy a word sits - how narrow a category it names. Concreteness as "
-    "TANGIBILITY asks how far what the word names can be perceived through the senses. "
-    "They often move together, but they are not the same thing, and neither validates the "
-    "other. For example: 'mug' (depth 5, rated 4.8 out of 5) and 'spaniel' (depth 17, "
-    "rated 4.7) are equally touchable yet differ enormously in specificity; 'nostalgia' "
-    "(depth 7, rated 1.8) is a more specific word than 'mug' while naming nothing "
-    "perceptible at all; and 'food' (depth 4, rated 4.8) is highly perceptible but names "
-    "a very broad category. Report whichever matches the construct you mean."
+    "This calculator provides two concreteness scores: concreteness as specificity and "
+    "concreteness as tangibility. They measure different things. Specificity asks how far "
+    "down a taxonomy a word sits - how narrow a category it names. Tangibility asks how "
+    "far what the word names can be perceived through the senses. The two often move "
+    "together, but they are not the same thing, and neither validates the other. For "
+    "example: 'mug' (depth 5, rated 4.8 out of 5) and 'spaniel' (depth 17, rated 4.7) are "
+    "equally touchable yet differ enormously in specificity; 'nostalgia' (depth 7, rated "
+    "1.8) is a more specific word than 'mug' while naming nothing perceptible at all; and "
+    "'food' (depth 4, rated 4.8) is highly perceptible but names a very broad category. "
+    "Report whichever matches the construct you mean."
 )
 
 VARIABLE_DEFS = [   # (column, previous name, group, units, definition)
@@ -213,8 +214,13 @@ with tab_vars:
 with tab_calc:
     # --- Library options (sidebar) ---------------------------------------------
     with st.sidebar:
-        st.header("Library options")
-        st.caption("Defaults match `lingprops.compute_concreteness` defaults.")
+        st.header("Scoring options")
+        st.caption(
+            "These options affect the concreteness-as-specificity score only - "
+            "they change how each word is matched to WordNet. The tangibility score "
+            "does not depend on them. The defaults are recommended; see the sizing "
+            "guide below if your dataset is large."
+        )
         wsd = st.selectbox(
             "WSD strategy",
             options=["first", "lesk", "neural"],

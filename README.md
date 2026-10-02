@@ -61,9 +61,9 @@ of scored words.
 
 ---
 
-## Library options exposed in the sidebar
+## Scoring options (sidebar)
 
-All match `lingprops.compute_concreteness` defaults:
+These affect the concreteness-as-specificity score only; tangibility does not depend on them. Defaults match the library:
 
 | Option | Default | Other choices |
 |---|---|---|
