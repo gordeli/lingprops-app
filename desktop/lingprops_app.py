@@ -107,6 +107,11 @@ tk.Tk.report_callback_exception = _tk_report_callback_exception
 # Metric registry  -  v1.1: normalised quantities + word counts only
 # ---------------------------------------------------------------------------
 
+# Version of the calculator itself. Kept in step with the lingprops version it
+# ships against; bump both files together.
+APP_VERSION = "1.2.1"
+
+
 METRIC_GROUPS = {
     "Concreteness as specificity (no repetitions)": [
         ("concreteness_specificity_score", "Score"),
@@ -272,7 +277,7 @@ def compute_row(text, *, wsd, ner, ner_backend):
 class LingPropsApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("LingProps - Concreteness Calculator")
+        self.root.title("LingProps - Concreteness Calculator v" + APP_VERSION)
         self.root.geometry("780x780")
         self.root.resizable(True, True)
 

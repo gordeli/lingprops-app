@@ -29,6 +29,11 @@ import io
 import pandas as pd
 import streamlit as st
 
+# Version of the calculator itself. Kept in step with the lingprops version it
+# ships against; bump both files together.
+APP_VERSION = "1.2.1"
+
+
 st.set_page_config(
     page_title="LingProps - Concreteness Calculator",
     layout="wide",
@@ -162,6 +167,15 @@ REFERENCES = [
 ]
 
 
+def _library_version():
+    """Version of the lingprops library actually installed (scores depend on it)."""
+    try:
+        from importlib.metadata import version
+        return version("lingprops")
+    except Exception:
+        return "unknown"
+
+
 def compute_row(text, *, wsd, ner, ner_backend):
     """Emit only the standard reporting set: concreteness (no-rep),
     tangibility (with-rep), and word counts."""
@@ -188,7 +202,7 @@ def compute_row(text, *, wsd, ner, ner_backend):
 # App
 # ---------------------------------------------------------------------------
 
-st.title("LingProps - Concreteness Calculator")
+st.title(f"LingProps - Concreteness Calculator v{APP_VERSION}")
 st.markdown(
     "Upload an Excel file with text data. The app computes WordNet-based "
     "concreteness and BWK tangibility scores for each row.  "
@@ -284,8 +298,8 @@ with tab_calc:
         st.markdown("---")
         st.caption(
             "Source: [lingprops-app](https://github.com/gordeli/lingprops-app) | "
-            "Library: [lingprops](https://github.com/gordeli/lingprops_test) "
-            "(pinned to v1.2.0)"
+            f"Library: [lingprops](https://github.com/gordeli/lingprops_test) "
+            f"v{_library_version()}"
         )
 
     # --- Upload ----------------------------------------------------------------
