@@ -1,8 +1,8 @@
 # Core library (pulled directly from GitHub).
 # PINNED TO A TAG on purpose: tracking @main meant a Streamlit reboot could
-# silently change the scores (e.g. the wsd="lesk" dispatch fix in v1.0.0).
+# silently change the scores (e.g. the wsd="lesk" dispatch fix in v1.2.0).
 # Bump this deliberately, and note the version in anything you publish.
-lingprops @ git+https://github.com/gordeli/lingprops_test.git@v1.0.0
+lingprops @ git+https://github.com/gordeli/lingprops_test.git@v1.2.0
 
 # Streamlit + I/O
 streamlit>=1.30
